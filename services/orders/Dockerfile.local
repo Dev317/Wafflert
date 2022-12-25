@@ -1,0 +1,7 @@
+FROM python:3.10-slim
+WORKDIR /usr/src/app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY ./ ./
+RUN chmod +x wait-for-it.sh
+CMD ./wait-for-it.sh -t 90 db:3306 -- python src/app.py

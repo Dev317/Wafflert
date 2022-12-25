@@ -1,0 +1,47 @@
+
+
+
+.btn-custom{
+    background-color: #F6F6F6;
+    border-radius:20px;
+    border:1px soild rgb(194, 194, 194);
+}
+
+
+.waf-banner{
+    position: relative;
+    top:10;
+    width: 100%;
+    justify-content: center;
+
+}
+
+.waf-image {
+    position: absolute;
+    width: 100%;
+    height: 230px;
+    object-fit: none;
+}
+
+.banner-text{
+    position: absolute;
+    width: 100%;
+    padding: 10%;
+    text-align: center;
+    box-sizing: border-box;
+    color: #fff;
+    margin: 0;
+    z-index:1;
+}
+
+
+.order-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -1;
+    opacity:0.3;
+}
+

@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  ####################################
+  # mysql database  
+  ####################################
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wafflet
+
+  ####################################
+  # Stripe Mock  
+  ####################################
+  # stripe-mock:
+  #   image: stripe/stripe-mock:latest
+  #   ports:
+  #     - "12111:12111"
+  #     - "12112:12112"
+
+  ##################################
+  # Test on Payments Service
+  ##################################
+  payments-test:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    depends_on:
+      - mysql
+    links:
+      - "mysql"
+    environment:
+      HOST: mysql
+      USER: root
+      PASSWORD: root
+      DB: wafflet
+      STRIPE_API_KEY: sk_test_51LsLPgIxgWYWAssYyICCQbsbgHcja31rT8LRQsa9mfMrZipZzsDu06Pi1dgi1ViKZBRL8bJZLgwmXrxIVCklq5sC00TUQ7SBUD
+      STRIPE_ACCOUNT_LINK_REFRESH: http://localhost:3000/user/onboarding/
+      STRIPE_ACCOUNT_LINK_RETURN: http://localhost:3000/user/onboarding/

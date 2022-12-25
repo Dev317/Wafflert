@@ -1,0 +1,193 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+services:
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: true
+    restart: always
+    ports:
+      - '3306:3306'
+    volumes:
+       - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql
+
+
+  ####################################
+  # RabbitMQ: The messaging broker
+  ####################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+
+  ####################################
+  # Atomic Microservice: telegram
+  ####################################
+  telegram:
+    build:
+      context: ./services/telegram
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "5001:5001"
+    depends_on:
+      - db
+
+
+  ####################################
+  # Atomic Microservice: users
+  ####################################
+  users:
+    build:
+      context: ./services/users
+      dockerfile: Dockerfile.local
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+
+  ####################################
+  # Atomic Microservice: payments
+  ####################################
+  payments:
+    build:
+      context: ./services/payments
+      dockerfile: Dockerfile.local
+    restart: on-failure
+    env_file:
+      - 'dev.env'
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+
+
+  ####################################
+  # Composite service: user mgmt
+  ####################################
+  user_mgmt:
+    build:
+      context: ./services/user_management
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+
+  ####################################
+  # UI
+  ####################################
+  user-interface:
+    build:
+      context: ./user-interface
+      dockerfile: Dockerfile.local
+    environment:
+      - REACT_APP_NODE_ENV=development
+      - BROWSER=none
+      - REACT_APP_STRIPE_API_KEY=pk_test_51LsLPgIxgWYWAssYYA6uBMFlJNcCMokvMpDyU72q7mn1TBAgD8iN6IjHxxXzUwgzKKfdFclsppEBEhtx3eDLeDiM00XNQdKKXm
+    restart: always
+    ports:
+      - "3000:3000"
+
+
+  ####################################
+  # Atomic Microservice: Orders
+  ####################################
+  orders:
+    build:
+      context: ./services/orders
+      dockerfile: Dockerfile.local
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "5002:5002"
+    depends_on:
+      - db
+
+
+  ####################################
+  # Composite Microservice: Ordr Mgmt
+  ####################################
+  order-mgmt:
+    build:
+      context: ./services/orders_management
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - orders
+      - db
+      - rabbitmq
+    env_file:
+      - 'dev.env'
+    ports:
+      - "5003:5003"
+    environment:
+      PYTHONUNBUFFERED: 1
+
+
+  ####################################
+  # Atomic Microservice: Bidding
+  ####################################
+  bidding:
+    build:
+      context: ./services/bidding
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "5077:5077"
+    depends_on:
+      - db
+
+  ####################################
+  # Atomic Microservice: Notifications
+  ####################################
+  notification:
+    build:
+      context: ./services/notifications
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      stage: dev
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
+      TELEGRAM_URL: http://telegram:5001
+    depends_on:
+      - rabbitmq
+
+  ####################################
+  # nginx: API Gateway
+  ####################################
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - 'dev.env'
+    ports:
+      - "8080:80"

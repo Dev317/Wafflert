@@ -1,0 +1,18 @@
+FROM python:3.10-slim
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+COPY ci/requirements.test.txt ./
+COPY src/* ./src/
+
+ENV stage="TEST"
+ENV users_service_url_internal="http://users:8000/api/v1/user"
+ENV payments_service_url_internal="http://payments:3000/payments"
+
+COPY tests/*.py ./tests/
+
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.test.txt
+
+CMD python -m pytest

@@ -1,0 +1,2 @@
+aiormq==6.4.2
+amqp-mock==0.4.0

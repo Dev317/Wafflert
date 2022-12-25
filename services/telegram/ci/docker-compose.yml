@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  pytest:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    environment:
+      TELEGRAM_BOT_API_KEY: 5743164553:AAHlr7G-pOUeWSL8oPr9xa9TnjRYmWsw8hs
+      user_composite_service_url: https://user_composite-api.com

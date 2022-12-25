@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  ####################################
+  # mysql database  
+  ####################################
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bid_service_db
+
+  ##################################
+  # Pytest on Bidding Service
+  ##################################
+  bidding-pytest:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    depends_on:
+      - mysql
+    environment:
+      db_conn: mysql+mysqlconnector://root:root@mysql:3306

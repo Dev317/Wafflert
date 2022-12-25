@@ -1,0 +1,197 @@
+.alignment {
+    margin-top: 30%;
+    color: rgb(163, 163, 163);
+}
+
+#prevBtn {
+    background: none;
+    border: none;
+}
+
+#nextBtn {
+    background: none;
+    border: none;
+}
+
+#centerText {
+    margin-left: 20%;
+    border: none;
+    background: none;
+}
+
+
+#centerText:hover {
+    color: rgb(0, 0, 0);
+}
+
+.waffleImg {
+    display: flex;
+    margin-top: 10%;
+    justify-content: flex-end;
+
+}
+
+
+.top-movement-next {
+    position: relative;
+    animation: topNext 0.4s;
+    transition: 2s;
+}
+
+
+.middle-movement-next {
+    position: relative;
+    animation: middleNext 0.4s;
+    transition: 2s;
+}
+
+
+.bottom-movement-next {
+    position: relative;
+    animation: bottomNext 0.4s;
+    transition: 2s;
+} 
+
+
+@keyframes topNext {
+    0% {
+       top: 200px;
+       left: 0;
+     }
+    
+     100% {
+        top: 0;
+        left: 0;
+        right:0;
+
+     }
+   }
+
+@keyframes middleNext {
+    0% {
+       top: -100px;
+       left: -250px;
+     }
+    
+     100% {
+        top: 0px;
+        left: 0;
+        right:0;
+
+     }
+   }
+
+   @keyframes bottomNext {
+    0% {
+       top: -100px;
+       left: 250px;
+     }
+    
+     100% {
+        top: 0px;
+        left: 0;
+        right:0;
+
+     }
+   }
+
+
+   .top-movement-prev {
+    position: relative;
+    animation: topPrev 0.4s;
+    transition: 2s;
+  }
+  
+  
+  .middle-movement-prev {
+    position: relative;
+    animation: middlePrev 0.4s;
+    transition: 2s;
+  }
+  
+  
+  .bottom-movement-prev {
+    position: relative;
+    animation: bottomPrev 0.4s;
+    transition: 2s;
+  } 
+  
+  
+  
+@keyframes topPrev {
+  0% {
+    top: 100px;
+    left:250px;
+   }
+  
+   100% {
+    top: 0px;
+    left: 0px;
+    right:0px;
+   }
+ }
+
+@keyframes middlePrev {
+  0% {
+    top: 100px;
+    right: 200px;
+    
+   }
+
+   100% {
+    top: 0px;
+    right:0px;
+   }
+ }
+
+ @keyframes bottomPrev {
+  0% {
+    top: -200px;
+      left: 0px;
+      right:0px;
+   }
+  
+   100% {
+    top: 0px;
+    left: 0px;
+   }
+ }
+  
+  
+
+
+
+
+
+
+   #nextBtn:hover {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  #prevBtn:hover {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+   @keyframes shake {
+    10%, 90% {
+      transform: translate3d(-1px, 0, 0);
+    }
+    
+    20%, 80% {
+      transform: translate3d(2px, 0, 0);
+    }
+  
+    30%, 50%, 70% {
+      transform: translate3d(-4px, 0, 0);
+    }
+  
+    40%, 60% {
+      transform: translate3d(4px, 0, 0);
+    }
+  }

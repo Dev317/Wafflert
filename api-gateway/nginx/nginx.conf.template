@@ -1,0 +1,64 @@
+server { 
+ listen 80;
+ 
+ location = /favicon.ico {
+   log_not_found off;
+ }
+
+ location /v1/user-mgmt {
+   proxy_pass ${nginx_user_composite_service_url}/user-mgmt;
+ }
+
+ location /v1/user {
+   proxy_pass ${nginx_user_service_url}/user;
+ }
+
+ location /v1/orders {
+   proxy_pass ${nginx_order_service_url}/orders;
+ }
+
+ location /v1/orders/orders-by-username {
+   proxy_pass ${nginx_order_service_url}/orders/orders-by-username;
+ }
+
+ location /v1/orders/runs-by-username {
+   proxy_pass ${nginx_order_service_url}/orders/runs-by-username;
+ }
+
+ location /v1/past_orders {
+   proxy_pass ${nginx_order_service_url}/past_orders;
+ }
+
+ location /v1/past_runs {
+   proxy_pass ${nginx_order_service_url}/past_runs;
+ }
+
+ location /v1/order {
+   proxy_pass ${nginx_order_service_url}/order;
+ }
+
+ location /v1/payments {
+   proxy_pass ${nginx_payments_service_url}/payments;
+ }
+
+ location /v1/place-order {
+   proxy_pass ${nginx_order_composite_service_url}/place-order;
+ }
+
+ location /v1/accept-order {
+   proxy_pass ${nginx_order_composite_service_url}/accept-order;
+ }
+
+ location /v1/complete-order {
+   proxy_pass ${nginx_order_composite_service_url}/complete-order;
+ }
+
+ location /v1/bids {
+   proxy_pass ${nginx_bidding_service_url}/bids;
+ }
+
+ location /v1/send {
+   proxy_pass ${nginx_telegram_service_url}/send;
+ }
+
+}

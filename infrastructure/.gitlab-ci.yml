@@ -1,0 +1,68 @@
+image:
+  name: registry.gitlab.com/gitlab-org/gitlab-build-images:terraform
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+variables:
+  TF_VAR_gitlab_token: ${GITLAB_ACCESS_TOKEN}
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY : ${AWS_SECRET_ACCESS_KEY}
+  AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+
+cache:
+  paths:
+    - .terraform
+
+before_script:
+  - terraform --version
+  - terraform init
+
+stages:
+  - validate
+  - plan
+  - devsecop
+  - apply
+
+validate:
+  stage: validate
+  script:
+    - terraform validate
+
+plan:
+  stage: plan
+  script:
+    - terraform plan -out="planfile"
+  dependencies:
+    - validate
+  artifacts:
+    paths:
+      - planfile
+
+tfsec:
+  stage: devsecop
+  image: ubuntu:18.04 
+  before_script:
+    - apt-get update
+    - apt-get install -y wget
+    - apt-get install zip unzip
+  script:
+    - wget https://releases.hashicorp.com/terraform/1.0.9/terraform_1.0.9_linux_amd64.zip
+    - unzip terraform_1.0.9_linux_amd64.zip
+    - chmod 770 ./terraform
+    - ./terraform init
+    - tfsec='https://github.com/tfsec/tfsec/releases/download/v1.27.1/tfsec-linux-amd64'
+    - wget $tfsec
+    - chmod 777 tfsec-linux-amd64
+    - pwd
+    - ls
+    - ./tfsec-linux-amd64 --format JUnit ./
+  allow_failure: true
+
+apply:
+  stage: apply
+  script:
+    - terraform apply -input=false "planfile"
+  dependencies:
+    - plan
+  when: manual

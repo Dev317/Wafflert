@@ -1,0 +1,84 @@
+stages:
+  - Static Analysis
+  - Test
+  - Release
+  - Deploy
+
+variables:
+  ECR_ADDRESS: 157077562636.dkr.ecr.us-east-2.amazonaws.com
+  REPO_NAME: payments_repo
+  TASK_DEFINITION_NAME: payments
+  CLUSTER_NAME: wafflert
+  SERVICE_NAME: payments_service
+  TASK_EXECUTION_ROLE: arn:aws:iam::157077562636:role/ecs-task-execution-role
+
+cache:
+  paths:
+    - node_modules/
+
+eslint:
+  stage: Static Analysis
+  image: node
+  before_script:
+    - npm install eslint
+  script:
+    - npm run lint
+  artifacts:
+    when: on_failure
+    paths:
+      - flake8_report.txt
+
+integration-tests:
+  stage: Test
+  image: docker/compose:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker info
+    - docker-compose --version
+  script:
+    - docker-compose -f ci/docker-compose.test.yml up --exit-code-from payments-test
+
+before_script:
+  - apk add --no-cache curl jq python py-pip
+  - pip install awscli
+  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+  - aws configure set region $AWS_DEFAULT_REGION
+  - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_ADDRESS
+  - IMAGE_TAG="$(echo $CI_COMMIT_SHA | head -c 8)"
+
+release:
+  stage: Release
+  image: docker:19.03.10
+  services:
+    - docker:dind
+  script:
+    - echo "Building image..."
+    - docker build -f Dockerfile -t $ECR_ADDRESS/$REPO_NAME:latest .
+    - echo "Tagging image..."
+    - docker tag $ECR_ADDRESS/$REPO_NAME:latest $ECR_ADDRESS/$REPO_NAME:$IMAGE_TAG
+    - echo "Pushing image..."
+    - docker push $ECR_ADDRESS/$REPO_NAME:latest
+    - docker push $ECR_ADDRESS/$REPO_NAME:$IMAGE_TAG
+  only:
+    - master
+
+deploy:
+  stage: Deploy
+  image: docker:19.03.10
+  services:
+    - docker:dind
+  script:
+    - echo $ECR_ADDRESS/$REPO_NAME:$IMAGE_TAG
+    - TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition "$TASK_DEFINITION_NAME" --region "${AWS_DEFAULT_REGION}")
+    - NEW_CONTAINER_DEFINTIION=$(echo $TASK_DEFINITION | jq --arg IMAGE "$ECR_ADDRESS/$REPO_NAME:$IMAGE_TAG" '.taskDefinition.containerDefinitions[0].image = $IMAGE | .taskDefinition.containerDefinitions[0]')
+    - echo "Stop existing task..."
+    - OLD_TASK_ID=$(aws ecs list-tasks --cluster ${CLUSTER_NAME} --desired-status RUNNING --family ${TASK_DEFINITION_NAME} | egrep "task/" | sed -E "s/.*task\/(.*)\"/\1/")
+    - aws ecs stop-task --cluster ${CLUSTER_NAME} --task ${OLD_TASK_ID}
+    - echo "Registering new container definition..."
+    - aws ecs register-task-definition --region "${AWS_DEFAULT_REGION}" --family "${TASK_DEFINITION_NAME}" --container-definitions "${NEW_CONTAINER_DEFINTIION}" --memory 100 --execution-role-arn "${TASK_EXECUTION_ROLE}"
+    - echo "Updating the service..."
+    - aws ecs update-service --region "${AWS_DEFAULT_REGION}" --cluster "${CLUSTER_NAME}" --service "${SERVICE_NAME}"  --task-definition "${TASK_DEFINITION_NAME}"
+  only:
+    - master

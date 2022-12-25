@@ -1,0 +1,19 @@
+.bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -1;
+    opacity:0.3;
+}
+
+
+.form-Box {
+    border: 1px solid rgb(173, 173, 173) !important;
+    border-radius: 20px !important;
+    padding: 10% !important;
+    margin-top: 5%!important;
+
+    background-color: white;
+}

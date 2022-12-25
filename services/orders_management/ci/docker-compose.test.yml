@@ -1,0 +1,31 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+  
+services:
+  ####################################
+  # RabbitMQ: The messaging broker   
+  ####################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+    volumes: 
+      - rabbitmq_data:/var/lib/rabbitmq
+      
+  ##################################
+  # Pytest on Order-Mgmt Service
+  ##################################
+  order-mgmt-pytest:
+    build:
+      context: ../
+      dockerfile: ci/Dockerfile.test
+    depends_on:
+      - rabbitmq
+    environment:
+      stage: testing
+      rabbitmq_host: rabbitmq
+      rabbitmq_port: 5672
