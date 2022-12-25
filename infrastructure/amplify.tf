@@ -19,7 +19,7 @@ resource "aws_amplify_app" "Wafflert" {
   name                     = "Wafflert"
   description              = "User-interface for Wafflert"
   repository               = "https://gitlab.com/cs302-2022/g1-team3/user-interface/user-interface"
-  access_token             = "glpat-wG-5hB_HovdoLShxhVdu"
+  access_token             = ""
   iam_service_role_arn     = aws_iam_role.amplify-gitlab.arn
   enable_branch_auto_build = true
 
